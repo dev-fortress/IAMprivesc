@@ -12,7 +12,7 @@ usage(){
     printf "${CYAN}[!] <usuario_aws>: Usuario de AWS que queremos validar si tiene permisos para elevar privilegios.${NC}\n\n"
     printf "${GREEN}Ejemplo: $0 user1${NC}\n\n"
     printf "${CYAN}[!] Nota: Se debe configurar credenciales de AWS con una cuenta que tenga permisos para listar grupos y politicas.${NC} \n\n"
-    printf "${GREEN}aws --configure${NC}\n"
+    printf "${GREEN}aws configure --profile Perfil-de-Prueba${NC}\n"
     exit 1;
 }
 
@@ -20,26 +20,15 @@ validar_input()
 {
     if [ -z $1 ]
     then
-        echo -e "${CYAN}\n[!] No hay argumentos${NC}\n"
+        echo -e "${CYAN}\n[!] No hay argumentos${NC}\n"        
         usage
-    else
-        main
     fi
 }
 
 
 
 obtener_usuarios() 
-{
-    : 'aws iam list-users | jq -r '.Users[].UserName' > users.txt
-
-    for user in $(cat users.txt); do
-        echo "\nUsuario: $user\n"
-        politicas_attached_por_usuario $user
-        grupos_por_usuario $user
-        versiones_politicas
-    done'
-    
+{  
     user=$1
     aws iam list-users | jq -r '.Users[].UserName' | grep "$user" &>/dev/null && existe=1
     if [[ $existe -eq 1 ]]
@@ -53,7 +42,6 @@ obtener_usuarios()
         echo -e "\n${RED}[-] Saliendo...${NC}\n"
     fi
     
-
 }
 
 politicas_attached_por_usuario()
@@ -172,11 +160,11 @@ versiones_politicas()
 
 
 borrar_archivos()
-{
-    rm -rf users.txt
+{    
     rm -rf groups.txt
     rm -rf politicas.txt
 }
 
+validar_input $1
 obtener_usuarios $1
 borrar_archivos
